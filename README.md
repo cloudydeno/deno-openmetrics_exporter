@@ -1,3 +1,5 @@
+![Test CI](https://github.com/danopia/deno-openmetrics_exporter/workflows/Deno%20CI/badge.svg?branch=main)
+
 # deno-openmetrics_exporter
 OpenMetrics / Prometheus metrics exporting for Deno's runtime
 

@@ -15,7 +15,8 @@ export function buildMetricsPayload(source: Generator<OpenMetric>, fmt: Expositi
       // the _total part moves up a level and non-_total metrics are stripped
       prefix += '_total';
       values = new Map(Array.from(values)
-        .filter(x => x[0].startsWith(prefix)));
+        .filter(x => x[0].startsWith('_total'))
+        .map(x => [x[0].slice('_total'.length), x[1]]));
     }
 
     accum.push(`# TYPE ${prefix} ${type}\n`);

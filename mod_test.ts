@@ -8,6 +8,7 @@ Deno.test("basics", async () => {
   assertEquals(resp.status, 200);
   const lines = await resp.text().then(x => x.split('\n'));
   assertArrayIncludes(lines, [
+    'deno_ops_completed_total{op_type="async_unref"} 0',
     '# TYPE deno_ops_sent_bytes counter',
     '# UNIT deno_ops_sent_bytes bytes',
     'deno_open_resources{res_type="stdin"} 1',
@@ -27,6 +28,7 @@ Deno.test("datadog compatibility", async () => {
     }});
   const lines = await resp.text().then(x => x.split('\n'));
   assertArrayIncludes(lines, [
+    'deno_ops_completed_total{op_type="async_unref"} 0',
     '# TYPE deno_ops_sent_bytes_total counter',
   ]);
 

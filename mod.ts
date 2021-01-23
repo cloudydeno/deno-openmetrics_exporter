@@ -8,6 +8,7 @@ import './lib/deno-metrics.ts';
 import './lib/linux-metrics.ts';
 
 export * from './lib/specification.ts';
+export * from './lib/registry.ts';
 export * from './lib/deno-metrics.ts';
 
 export function runMetricsServer(opts?: Pick<Deno.ListenOptions, "port" | "hostname">, registry = DefaultRegistry) {
@@ -36,6 +37,10 @@ export function respondToScrape(req: ServerRequest, stream: Generator<OpenMetric
     return req.respond(buildMetricsResponse(stream, 'legacy'));
   }
 
+  // give web browsers the modern payload, but as plaintext
+  if (req.headers.get('user-agent')?.startsWith('Mozilla/')) {
+    return req.respond(buildMetricsResponse(stream, 'plaintext'));
+  }
   // prometheus since 2.5.0 (~2018) has supported OpenMetrics
   req.respond(buildMetricsResponse(stream, 'openmetrics'));
 }

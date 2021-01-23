@@ -28,10 +28,11 @@ export type OpenMetric = MetricMetadata & ({
 });
 
 
-export type ExpositionFormat = 'openmetrics' | 'legacy';
+export type ExpositionFormat = 'openmetrics' | "plaintext" | 'legacy';
 export const ContentTypes = {
   openmetrics: 'application/openmetrics-text; version=1.0.0; charset=utf-8',
   legacy: 'text/plain; version=0.0.4',
+  plaintext: 'text/plain',
 };
 
 export function buildMetricsPayload(source: Generator<OpenMetric>, fmt: ExpositionFormat) {
@@ -49,7 +50,7 @@ export function buildMetricsPayload(source: Generator<OpenMetric>, fmt: Expositi
     }
 
     accum.push(`# TYPE ${prefix} ${type}\n`);
-    if (unit && fmt === 'openmetrics') accum.push(`# UNIT ${prefix} ${unit}\n`);
+    if (unit && fmt !== 'legacy') accum.push(`# UNIT ${prefix} ${unit}\n`);
     if (help) accum.push(`# HELP ${prefix} ${help}\n`);
     if (metric.values) {
       for (const point of values!) {
@@ -59,7 +60,7 @@ export function buildMetricsPayload(source: Generator<OpenMetric>, fmt: Expositi
       accum.push(`${prefix} ${metric.singleValue}\n`)
     }
   }
-  if (fmt === 'openmetrics') accum.push(`# EOF\n`);
+  if (fmt !== 'legacy') accum.push(`# EOF\n`);
   return accum.join('');
 }
 

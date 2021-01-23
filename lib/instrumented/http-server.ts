@@ -14,8 +14,9 @@ import { STATUS_TEXT } from "https://deno.land/std@0.84.0/http/http_status.ts";
 
 const encoder = new TextEncoder();
 
-export class Server implements AsyncIterable<http.ServerRequest> {
+export class Server extends http.Server {
   constructor(private realServer: http.Server) {
+    super(realServer.listener);
     DefaultRegistry.sources.push(this);
   }
   #inFlight = 0;

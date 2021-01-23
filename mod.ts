@@ -1,4 +1,5 @@
-import { serve, ServerRequest } from "https://deno.land/std@0.84.0/http/server.ts";
+// import { serve, ServerRequest } from "https://deno.land/std@0.84.0/http/server.ts";
+import { serve, ServerRequest } from "./lib/instrumented/http-server.ts";
 
 import { buildMetricsResponse, OpenMetric } from './lib/specification.ts';
 import { DefaultRegistry } from './lib/registry.ts';

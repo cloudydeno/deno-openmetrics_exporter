@@ -1,20 +1,24 @@
 import { serve, ServerRequest } from "https://deno.land/std@0.84.0/http/server.ts";
 
 import { buildMetricsResponse, OpenMetric } from './lib/specification.ts';
-import { gatherEverything } from './lib/deno-metrics.ts';
+import { DefaultRegistry } from './lib/registry.ts';
+
+import './lib/deno-metrics.ts';
+import './lib/linux-metrics.ts';
 
 export * from './lib/specification.ts';
 export * from './lib/deno-metrics.ts';
 
-export function runMetricsServer(opts?: Pick<Deno.ListenOptions, "port" | "hostname">) {
+export function runMetricsServer(opts?: Pick<Deno.ListenOptions, "port" | "hostname">, registry = DefaultRegistry) {
+  // TODO: tag our server as 'metrics' somehow
   const server = serve(opts ?? { port: 9090 });
 
   // go work the server on its own
   (async function() {
     for await (const req of server) {
 
-      if (req.url === '/metrics') {
-        respondToScrape(req, gatherEverything());
+      if (req.url === '/metrics' && req.method === 'GET') {
+        respondToScrape(req, registry.scrapeMetrics());
         continue;
       }
 
@@ -26,7 +30,7 @@ export function runMetricsServer(opts?: Pick<Deno.ListenOptions, "port" | "hostn
 }
 
 export function respondToScrape(req: ServerRequest, stream: Generator<OpenMetric>) {
-  // datadog only acceppts prometheus payloads
+  // datadog only accepts original prometheus payloads
   if (req.headers.get('user-agent')?.startsWith('Datadog Agent/')) {
     return req.respond(buildMetricsResponse(stream, 'legacy'));
   }

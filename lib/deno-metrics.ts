@@ -1,13 +1,19 @@
 import { OpenMetric } from './specification.ts';
+import { DefaultRegistry } from './registry.ts';
 
 const seenResources = new Set<string>();
 
-export function* gatherEverything() {
-  yield* buildDenoMetrics(Deno.metrics());
-  yield* buildDenoResources(Deno.resources());
+export function* scrapeDenoMetrics() {
+  yield* buildDenoOpsMetrics(Deno.metrics());
+  yield* buildDenoResMetrics(Deno.resources());
 }
 
-export function* buildDenoMetrics(metrics: Deno.Metrics): Generator<OpenMetric> {
+// Always register us in the default registry
+DefaultRegistry.sources.push({
+  scrapeMetrics: scrapeDenoMetrics,
+});
+
+export function* buildDenoOpsMetrics(metrics: Deno.Metrics): Generator<OpenMetric> {
   yield {
     prefix: 'deno_ops_dispatched',
     type: 'counter',
@@ -48,7 +54,7 @@ export function* buildDenoMetrics(metrics: Deno.Metrics): Generator<OpenMetric> 
     ])};
 }
 
-export function* buildDenoResources(resources: Deno.ResourceMap): Generator<OpenMetric> {
+export function* buildDenoResMetrics(resources: Deno.ResourceMap): Generator<OpenMetric> {
   // Seed our map with all relevant zeros
   const typeCounts = new Map<string, number>(Array
     .from(seenResources).map(x => [x, 0]));

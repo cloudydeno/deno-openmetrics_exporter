@@ -1,10 +1,22 @@
-import { runMetricsServer } from './mod.ts';
+import { runMetricsServer, MetricsRegistry, scrapeDenoMetrics } from './mod.ts';
 import { assertEquals, assertArrayIncludes } from "https://deno.land/std@0.84.0/testing/asserts.ts";
 
-Deno.test("basics", async () => {
-  const server = runMetricsServer({ port: 9093, hostname: 'localhost' });
+function setupMetricServer() {
+  const registry = new MetricsRegistry();
+  registry.sources.push({
+    scrapeMetrics: scrapeDenoMetrics,
+  });
 
-  const resp = await fetch('http://localhost:9093/metrics');
+  const server = runMetricsServer({ port: 0, hostname: 'localhost' }, registry);
+  const {port} = server.listener.addr as Deno.NetAddr;
+  const url = `http://localhost:${port}`;
+  return {registry, server, url};
+}
+
+Deno.test("basics", async () => {
+  const {server, url} = setupMetricServer();
+
+  const resp = await fetch(`${url}/metrics`);
   assertEquals(resp.status, 200);
   const lines = await resp.text().then(x => x.split('\n'));
   assertArrayIncludes(lines, [
@@ -20,9 +32,9 @@ Deno.test("basics", async () => {
 });
 
 Deno.test("datadog compatibility", async () => {
-  const server = runMetricsServer({ port: 9093, hostname: 'localhost' });
+  const {server, url} = setupMetricServer();
 
-  const resp = await fetch('http://localhost:9093/metrics', {
+  const resp = await fetch(`${url}/metrics`, {
     headers: {
       'User-Agent': 'Datadog Agent/0.0.0',
     }});
@@ -36,9 +48,9 @@ Deno.test("datadog compatibility", async () => {
 });
 
 Deno.test("no root route", async () => {
-  const server = runMetricsServer({ port: 9093, hostname: 'localhost' });
+  const {server, url} = setupMetricServer();
 
-  const resp = await fetch('http://localhost:9093');
+  const resp = await fetch(`${url}/not-found`);
   assertEquals(resp.status, 404);
   await resp.text();
 

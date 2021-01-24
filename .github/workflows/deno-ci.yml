@@ -27,4 +27,4 @@ jobs:
       run: time deno cache demo.ts
 
     - name: Run tests
-      run: time deno test --coverage --unstable --allow-net=localhost
+      run: time deno test --coverage --unstable --allow-net=localhost --allow-read=/proc/self

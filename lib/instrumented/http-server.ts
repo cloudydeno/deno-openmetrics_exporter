@@ -1,4 +1,4 @@
-import { OpenMetric } from '../specification.ts';
+import { OpenMetric } from '../types.ts';
 import { DefaultRegistry } from '../registry.ts';
 
 import * as http from 'https://deno.land/std@0.84.0/http/server.ts';

@@ -1,5 +1,5 @@
-import { OpenMetric } from './specification.ts';
-import { DefaultRegistry } from './registry.ts';
+import { OpenMetric } from '../types.ts';
+import { DefaultRegistry } from '../registry.ts';
 
 const seenResources = new Set<string>();
 

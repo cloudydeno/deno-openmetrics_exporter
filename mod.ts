@@ -1,26 +1,36 @@
-// import { serve, ServerRequest } from "https://deno.land/std@0.84.0/http/server.ts";
+// The 'communal' metrics storage
+import { MetricsRegistry, DefaultRegistry } from './lib/registry.ts';
+
+// Load some default instrumentation
+import './lib/instrumented/deno.ts';
+import './lib/instrumented/linux-procfs.ts';
 import { serve, ServerRequest } from "./lib/instrumented/http-server.ts";
 
-import { OpenMetric } from './lib/specification.ts';
-import { DefaultRegistry } from './lib/registry.ts';
-
-import './lib/deno-metrics.ts';
-import './lib/linux-metrics.ts';
-
-export * from './lib/specification.ts';
+export * from './lib/exposition.ts';
 export * from './lib/registry.ts';
-export * from './lib/deno-metrics.ts';
+export * from './lib/types.ts';
 
-export function runMetricsServer(opts?: Pick<Deno.ListenOptions, "port" | "hostname">, registry = DefaultRegistry) {
-  // TODO: tag our server as 'metrics' somehow
-  const server = serve(opts ?? { port: 9090 });
+export function runMetricsServer(opts: {
+  /** The port to listen on */
+  port: number | 'random';
+  /** A literal IP address or host name that can be resolved to an IP address.
+   * If not specified, defaults to `0.0.0.0`. */
+  hostname?: string;
+  /** A specific metrics registry to serve data from, if not the default. */
+  registry?: MetricsRegistry;
+}) {
+
+  const server = serve({ ...opts,
+    port: opts.port === 'random' ? 0 : opts.port,
+    // TODO: tag our server metrics as 'role=metrics' somehow
+  });
 
   // go work the server on its own
   (async function() {
     for await (const req of server) {
 
       if (req.url === '/metrics' && req.method === 'GET') {
-        respondToScrape(req, registry.scrapeMetrics());
+        respondToScrape(req, opts.registry);
         continue;
       }
 
@@ -31,8 +41,10 @@ export function runMetricsServer(opts?: Pick<Deno.ListenOptions, "port" | "hostn
   return server;
 }
 
-export function respondToScrape(req: ServerRequest, stream: Generator<OpenMetric>) {
-  const {text, contentType} = DefaultRegistry.buildScrapeText(req.headers.get('user-agent'));
+/** Utility function that responds to commonplace http.ServerRequest requests */
+export function respondToScrape(req: ServerRequest, registry = DefaultRegistry) {
+  const {text, contentType} = registry
+    .buildScrapeText(req.headers.get('user-agent'));
 
   req.respond({
     body: text,

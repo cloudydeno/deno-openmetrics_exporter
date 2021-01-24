@@ -1,10 +1,23 @@
-import { OpenMetric } from './specification.ts';
-import { DefaultRegistry } from './registry.ts';
+import { OpenMetric } from '../types.ts';
+import { DefaultRegistry } from '../registry.ts';
 
-// Always register us in the default registry
-DefaultRegistry.sources.push({
-  scrapeMetrics: collectLinuxMetrics,
-});
+// Check if we can access /proc/self at all
+// This can fail for two main reasons:
+//   1. --allow-read=/proc/self (or wider) not given
+//   2. Not on a Linuxy system (or procfs otherwise not available)
+let canScrape = false;
+try {
+  Deno.readDirSync("/proc/self/fd");
+  canScrape = true;
+} catch {}
+
+// If we can operate at all, register us in the default registry
+if (canScrape) {
+  DefaultRegistry.sources.push({
+    scrapeMetrics: collectLinuxMetrics,
+  });
+}
+
 
 export function* collectLinuxMetrics(): Generator<OpenMetric> {
 

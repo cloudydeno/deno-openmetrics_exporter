@@ -1,32 +1,6 @@
 // https://github.com/OpenObservability/OpenMetrics/blob/master/specification/OpenMetrics.md
 
-export type MetricType =
-| "unknown"
-| "gauge"
-| "counter"
-| "stateset"
-| "info"
-| "histogram"
-| "gaugehistogram"
-| "summary";
-
-export interface MetricMetadata {
-  prefix: string;
-  type: MetricType;
-  unit?: string;
-  help?: string;
-  singleValue?: number | string;
-  values?: Map<string, number | string>;
-}
-
-export type OpenMetric = MetricMetadata & ({
-  singleValue: number | string;
-  values?: undefined;
-} | {
-  singleValue?: undefined;
-  values: Map<string, number | string>;
-});
-
+import { OpenMetric } from "./types.ts";
 
 export type ExpositionFormat = 'openmetrics' | "plaintext" | 'legacy';
 export const ContentTypes = {

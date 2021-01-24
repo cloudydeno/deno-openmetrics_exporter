@@ -1,7 +1,7 @@
+import { OpenMetric } from './types.ts';
 import {
-  OpenMetric,
   buildExposition, bestFormatForAgent,
-} from './specification.ts';
+} from './exposition.ts';
 
 export interface MetricsSource {
   scrapeMetrics(): Generator<OpenMetric>;

@@ -34,7 +34,9 @@ export function* collectLinuxMetrics(): Generator<OpenMetric> {
       help: 'Number of open file descriptors.',
       singleValue: count};
 
-  } catch {}
+  } catch (err) {
+    console.log(err.stack);
+  }
 
   try {
     const limits = Deno.readTextFileSync('/proc/self/limits');
@@ -54,6 +56,8 @@ export function* collectLinuxMetrics(): Generator<OpenMetric> {
       help: 'Maximum number of open file descriptors.',
       singleValue: maxFds};
 
-  } catch {}
+  } catch (err) {
+    console.log(err.stack);
+  }
 
 }

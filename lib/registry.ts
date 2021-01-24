@@ -1,4 +1,7 @@
-import { OpenMetric } from './specification.ts';
+import {
+  OpenMetric,
+  buildExposition, bestFormatForAgent,
+} from './specification.ts';
 
 export interface MetricsSource {
   scrapeMetrics(): Generator<OpenMetric>;
@@ -11,6 +14,10 @@ export class MetricsRegistry implements MetricsSource {
     for (const source of this.sources) {
       yield* source.scrapeMetrics();
     }
+  }
+
+  buildScrapeText(userAgent?: string | null) {
+    return buildExposition(this.scrapeMetrics(), bestFormatForAgent(userAgent));
   }
 
 }

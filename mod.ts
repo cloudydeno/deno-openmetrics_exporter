@@ -1,7 +1,7 @@
 // import { serve, ServerRequest } from "https://deno.land/std@0.84.0/http/server.ts";
 import { serve, ServerRequest } from "./lib/instrumented/http-server.ts";
 
-import { buildMetricsResponse, OpenMetric } from './lib/specification.ts';
+import { OpenMetric } from './lib/specification.ts';
 import { DefaultRegistry } from './lib/registry.ts';
 
 import './lib/deno-metrics.ts';
@@ -32,15 +32,12 @@ export function runMetricsServer(opts?: Pick<Deno.ListenOptions, "port" | "hostn
 }
 
 export function respondToScrape(req: ServerRequest, stream: Generator<OpenMetric>) {
-  // datadog only accepts original prometheus payloads
-  if (req.headers.get('user-agent')?.startsWith('Datadog Agent/')) {
-    return req.respond(buildMetricsResponse(stream, 'legacy'));
-  }
+  const {text, contentType} = DefaultRegistry.buildScrapeText(req.headers.get('user-agent'));
 
-  // give web browsers the modern payload, but as plaintext
-  if (req.headers.get('user-agent')?.startsWith('Mozilla/')) {
-    return req.respond(buildMetricsResponse(stream, 'plaintext'));
-  }
-  // prometheus since 2.5.0 (~2018) has supported OpenMetrics
-  req.respond(buildMetricsResponse(stream, 'openmetrics'));
+  req.respond({
+    body: text,
+    headers: new Headers({
+      'content-type': contentType,
+    }),
+  });
 }

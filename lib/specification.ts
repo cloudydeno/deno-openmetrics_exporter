@@ -35,7 +35,7 @@ export const ContentTypes = {
   plaintext: 'text/plain',
 };
 
-export function buildMetricsPayload(source: Generator<OpenMetric>, fmt: ExpositionFormat) {
+export function serializeMetricsPayload(source: Generator<OpenMetric>, fmt: ExpositionFormat) {
   const accum = new Array<string>();
   for (const metric of source) {
     let {prefix, type, unit, help, values} = metric;
@@ -64,11 +64,24 @@ export function buildMetricsPayload(source: Generator<OpenMetric>, fmt: Expositi
   return accum.join('');
 }
 
-export function buildMetricsResponse(source: Generator<OpenMetric>, fmt: ExpositionFormat) {
+export function buildExposition(source: Generator<OpenMetric>, fmt: ExpositionFormat) {
   return {
-    body: buildMetricsPayload(source, fmt),
-    headers: new Headers({
-      'content-type': ContentTypes[fmt],
-    }),
+    text: serializeMetricsPayload(source, fmt),
+    contentType: ContentTypes[fmt],
+  };
+}
+
+export function bestFormatForAgent(userAgent?: string | null) {
+  // datadog only accepts original prometheus payloads
+  if (userAgent?.startsWith('Datadog Agent/')) {
+    return 'legacy';
   }
+
+  // give web browsers the modern payload, but as plaintext
+  if (userAgent?.startsWith('Mozilla/')) {
+    return 'plaintext';
+  }
+
+  // prometheus since 2.5.0 (~2018) has supported OpenMetrics
+  return 'openmetrics';
 }

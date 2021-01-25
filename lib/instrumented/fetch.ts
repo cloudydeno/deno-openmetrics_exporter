@@ -86,7 +86,7 @@ export function makeFetch(
         if (dimSet.has('status')) facets.push(`code="${code}"`);
         if (dimSet.has('method')) facets.push(`method=${JSON.stringify(method)}`);
         const facetStr = facets.join(',');
-        const counterKey = facetStr ? `{${facetStr}}` : '';
+        const counterKey = '_total' + (facetStr ? `{${facetStr}}` : '');
 
         const d1 = performance.now();
         const totalMillis = d1-d0;

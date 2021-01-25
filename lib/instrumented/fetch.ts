@@ -82,7 +82,7 @@ export function makeFetch(
 
         // console.log(method, hostname, resp.status);
         const facets = new Array<string>();
-        if (dimSet.has('host')) facets.push(`host=${JSON.stringify(hostname)}`);
+        if (dimSet.has('host')) facets.push(`hostname=${JSON.stringify(hostname)}`);
         if (dimSet.has('status')) facets.push(`code="${code}"`);
         if (dimSet.has('method')) facets.push(`method=${JSON.stringify(method)}`);
         const facetStr = facets.join(',');

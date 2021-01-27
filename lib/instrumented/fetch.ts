@@ -10,10 +10,11 @@ export function makeFetch(
   const dimSet = new Set(dimensions);
 
   let inFlight = 0;
-  let totalReqs = 0;
-  let totalTime = 0;
+  // let totalReqs = 0;
+  // let totalTime = 0;
   const respSizing: ResponseSize = {bodyBytes: 0, headerBytes: 0, framingBytes: 0};
   const counters = new Map<string,number>();
+  const timers = new Map<string,number>();
 
   registry.sources.push({ *scrapeMetrics(): Generator<OpenMetric> {
 
@@ -35,14 +36,7 @@ export function makeFetch(
       type: 'summary',
       unit: 'seconds',
       help: `A histogram of the HTTP request durations, including receiving a response.`,
-      values: new Map([
-        // ['_bucket{le="0.01"}', this.#within10ms],
-        // ['_bucket{le="0.1"}', this.#within100ms],
-        // ['_bucket{le="1"}', this.#within1000ms],
-        // ['_bucket{le="+Inf"}', this.#served],
-        ['_sum', totalTime / 1000],
-        ['_count', totalReqs],
-      ])};
+      values: timers};
 
     // yield {
     //   prefix: "fetch_response_bytes",
@@ -92,12 +86,19 @@ export function makeFetch(
         const totalMillis = d1-d0;
 
         inFlight--;
-        totalReqs++;
-        totalTime += totalMillis;
+        // totalReqs++;
+        // totalTime += totalMillis;
 
         const counter = counters.get(counterKey) ?? 0;
         counters.set(counterKey, counter + 1);
 
+        const timerFacet = `{host=${JSON.stringify(hostname)}}`
+        const counterA = timers.get('_sum'+timerFacet) ?? 0;
+        timers.set('_sum'+timerFacet, counterA + (totalMillis / 1000));
+        const counterB = timers.get('_count'+timerFacet) ?? 0;
+        timers.set('_count'+timerFacet, counterB + 1);
+
+        timers
       });
 
     return promise;

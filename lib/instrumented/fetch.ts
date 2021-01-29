@@ -92,7 +92,7 @@ export function makeFetch(
         const counter = counters.get(counterKey) ?? 0;
         counters.set(counterKey, counter + 1);
 
-        const timerFacet = `{host=${JSON.stringify(hostname)}}`
+        const timerFacet = `{hostname=${JSON.stringify(hostname)}}`
         const counterA = timers.get('_sum'+timerFacet) ?? 0;
         timers.set('_sum'+timerFacet, counterA + (totalMillis / 1000));
         const counterB = timers.get('_count'+timerFacet) ?? 0;

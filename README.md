@@ -3,6 +3,13 @@
 # deno-openmetrics_exporter
 OpenMetrics / Prometheus metrics exporting for Deno's runtime
 
+## Repository Migrated!
+
+A metrics effort focused only on OpenMetrics/Prometheus is too narrow in scope for such a young ecosystem,
+so further development on this code has been moved to
+[/x/observability](https://github.com/cloudydeno/deno-observability) instead.
+This widens the scope of the module so please get in touch if you have Opinions™ about monitoring Deno programs.
+
 ## Example
 
 It's pretty typical to run a Prometheus exporter on its own dedicated port
